@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paid Trailer Placements</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    header h1 { font-size: 20px; font-weight: 600; letter-spacing: 0.3px; }
+    header .subtitle { font-size: 13px; color: #8892b0; margin-top: 2px; }
+    .controls {
+      background: white;
+      padding: 16px 32px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .film-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .film-tab {
+      padding: 7px 16px;
+      border-radius: 20px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s;
+      background: #f0f2f5;
+      color: #555;
+    }
+    .film-tab.active {
+      background: #1a1a2e;
+      color: white;
+      border-color: #1a1a2e;
+    }
+    .film-tab:hover:not(.active) {
+      background: #e2e8f0;
+      color: #333;
+    }
+    .divider { width: 1px; height: 32px; background: #e2e8f0; }
+    select, input[type="text"] {
+      padding: 7px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      background: white;
+      color: #333;
+      outline: none;
+      transition: border 0.15s;
+    }
+    select:focus, input:focus { border-color: #6366f1; }
+    .sort-btn {
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background: white;
+      font-size: 13px;
+      cursor: pointer;
+      color: #555;
+      transition: all 0.15s;
+    }
+    .sort-btn.active { background: #6366f1; color: white; border-color: #6366f1; }
+    .main {
+      padding: 24px 32px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .summary-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      flex: 1;
+      min-width: 160px;
+    }
+    .stat-card .label { font-size: 12px; color: #6b7280; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card .value { font-size: 24px; font-weight: 700; color: #1a1a2e; }
+    .stat-card .sub { font-size: 12px; color: #9ca3af; }
+
+    .view-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .view-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: white;
+      font-size: 12px;
+      cursor: pointer;
+      color: #555;
+    }
+    .view-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+
+    /* Table View */
+    .table-wrapper {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    thead th {
+      background: #f8fafc;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #6b7280;
+      border-bottom: 1px solid #e5e7eb;
+      cursor: pointer;
+      user-select: none;
+    }
+    thead th:hover { color: #374151; }
+    thead th .sort-indicator { margin-left: 4px; opacity: 0.4; }
+    tbody tr {
+      border-bottom: 1px solid #f3f4f6;
+      transition: background 0.1s;
+    }
+    tbody tr:hover { background: #fafbfc; }
+    tbody tr:last-child { border-bottom: none; }
+    td { padding: 12px 16px; }
+    td.date { font-weight: 600; color: #374151; white-space: nowrap; }
+    td.placement { font-weight: 600; color: #1a1a2e; }
+    td.cost { font-weight: 700; color: #059669; text-align: right; }
+    td.screens { color: #6366f1; font-weight: 600; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    /* Card View */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .placement-card {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-left: 4px solid;
+      transition: box-shadow 0.15s;
+    }
+    .placement-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .card-title { font-size: 15px; font-weight: 700; color: #1a1a2e; line-height: 1.3; flex: 1; margin-right: 10px; }
+    .card-date { font-size: 12px; font-weight: 600; color: #6b7280; white-space: nowrap; margin-top: 2px; }
+    .card-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .card-screens { font-size: 13px; font-weight: 700; color: #6366f1; }
+    .card-cost { font-size: 13px; font-weight: 700; color: #059669; margin-left: auto; }
+
+    /* Group headers */
+    .group-header {
+      padding: 10px 16px;
+      background: #f8fafc;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #9ca3af;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #9ca3af;
+    }
+    .empty-state svg { margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* Exhibitor colors */
+    .ex-amc { background: #fee2e2; color: #b91c1c; }
+    .ex-cinemark { background: #dbeafe; color: #1d4ed8; }
+    .ex-megaplex { background: #fef3c7; color: #b45309; }
+    .ex-emagine { background: #d1fae5; color: #065f46; }
+    .ex-marcus { background: #ede9fe; color: #5b21b6; }
+    .ex-regal { background: #fce7f3; color: #9d174d; }
+    .ex-bandamp { background: #ffedd5; color: #9a3412; }
+    .ex-natlamuse { background: #e0f2fe; color: #075985; }
+    .ex-natamusements { background: #e0f2fe; color: #075985; }
+    .ex-harkins { background: #f0fdf4; color: #14532d; }
+    .ex-other { background: #f3f4f6; color: #374151; }
+
+    .border-amc { border-color: #ef4444; }
+    .border-cinemark { border-color: #3b82f6; }
+    .border-megaplex { border-color: #f59e0b; }
+    .border-emagine { border-color: #10b981; }
+    .border-marcus { border-color: #8b5cf6; }
+    .border-regal { border-color: #ec4899; }
+    .border-bandamp { border-color: #f97316; }
+    .border-natlamuse { border-color: #0ea5e9; }
+    .border-natamusements { border-color: #0ea5e9; }
+    .border-harkins { border-color: #22c55e; }
+    .border-other { border-color: #9ca3af; }
+
+    .no-cost { color: #d1d5db; }
+
+    .sync-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.1);
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .sync-btn:hover { background: rgba(255,255,255,0.2); }
+    .sync-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .sync-btn.syncing .sync-icon { display: inline-block; animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .last-synced { font-size: 11px; color: #8892b0; }
+
+    /* Login gate */
+    #loginOverlay {
+      position: fixed; inset: 0;
+      background: #1a1a2e;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    .login-box {
+      background: white; border-radius: 20px;
+      padding: 52px 48px; text-align: center;
+      max-width: 420px; width: 90%;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+    }
+    .login-logo { font-size: 40px; margin-bottom: 12px; }
+    .login-title { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+    .login-sub { font-size: 14px; color: #6b7280; margin-bottom: 32px; }
+    .login-btn {
+      display: inline-flex; align-items: center; gap: 12px;
+      padding: 12px 24px; border-radius: 10px;
+      border: 1px solid #d1d5db; background: white;
+      font-size: 15px; font-weight: 500; color: #374151;
+      cursor: pointer; transition: box-shadow 0.15s;
+      width: 100%; justify-content: center; box-sizing: border-box;
+    }
+    .login-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+    .login-error { margin-top: 16px; font-size: 13px; color: #dc2626; display: none; }
+    .login-note { margin-top: 20px; font-size: 12px; color: #9ca3af; }
+
+    @media (max-width: 768px) {
+      .controls { padding: 12px 16px; }
+      .main { padding: 16px; }
+      header { padding: 16px; }
+      header h1 { font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Login gate -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">üé¨</div>
+    <div class="login-title">Paid Trailer Placements</div>
+    <div class="login-sub">Angel Studios Internal ‚Äî sign in to continue</div>
+    <button class="login-btn" id="loginBtn">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+      Sign in with Google
+    </button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-note">Access restricted to @angel.co accounts</div>
+  </div>
+</div>
+
+<!-- App (hidden until authenticated) -->
+<div id="appContent" style="display:none">
+<header>
+  <div>
+    <h1>üé¨ Paid Trailer Placements</h1>
+    <div class="subtitle">Angel Studios ‚Äî Trailer placement tracking by film</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="last-synced" id="lastSynced">Cached data</span>
+    <button class="sync-btn" id="syncBtn" onclick="handleSyncClick()">
+      <span class="sync-icon" style="font-size:15px">‚Üª</span> Sync from Sheets
+    </button>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="film-tabs" id="filmTabs"></div>
+  <div class="divider"></div>
+  <select id="exhibitorFilter">
+    <option value="">All Exhibitors</option>
+  </select>
+  <input type="text" id="searchInput" placeholder="Search placements..." style="width:180px">
+  <div class="divider"></div>
+  <button class="sort-btn active" id="sortDate" onclick="setSort('date')">By Date</button>
+  <button class="sort-btn" id="sortCost" onclick="setSort('cost')">By Cost</button>
+  <button class="sort-btn" id="sortExhibitor" onclick="setSort('exhibitor')">By Exhibitor</button>
+</div>
+
+<div class="main">
+  <div class="summary-bar" id="summaryBar"></div>
+
+  <div class="view-toggle">
+    <button class="view-btn active" id="btnTable" onclick="setView('table')">Table</button>
+    <button class="view-btn" id="btnCards" onclick="setView('cards')">Cards</button>
+  </div>
+
+  <div id="content"></div>
+</div>
+</div><!-- end #appContent -->
+
+<script>
+const FILMS = ['Young Washington', 'Animal Farm', 'Solo Mio', 'I Was a Stranger', 'David'];
+
+// Film color accents
+const FILM_COLORS = {
+  'Young Washington': '#6366f1',
+  'Animal Farm':      '#f59e0b',
+  'Solo Mio':         '#ec4899',
+  'I Was a Stranger': '#10b981',
+  'David':            '#ef4444',
+};
+
+const RAW_DATA = [
+  // ‚îÄ‚îÄ‚îÄ YOUNG WASHINGTON ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+  { film:'Young Washington', exhibitor:'AMC',       placement:'The Choral',                   date:'2025-12-25', screens:'50%',      cost:2900 },
+  { film:'Young Washington', exhibitor:'AMC',       placement:'A Private Life',               date:'2026-01-26', screens:'50%',      cost:1000 },
+  { film:'Young Washington', exhibitor:'AMC',       placement:'I Can Only Imagine',           date:'2026-02-20', screens:'50%',      cost:46900 },
+  { film:'Young Washington', exhibitor:'AMC',       placement:'Disclosure Day',               date:null,         screens:'30%',      cost:75000 },
+  { film:'Young Washington', exhibitor:'AMC',       placement:'Melania',                      date:'2026-01-30', screens:'25%',      cost:2400 },
+
+  { film:'Young Washington', exhibitor:'Cinemark',  placement:'Five Nights at Freddys',       date:'2025-12-05', screens:'10 screens', cost:7000 },
+  { film:'Young Washington', exhibitor:'Cinemark',  placement:'Greenland 2',                  date:'2026-01-09', screens:'55%',      cost:7500 },
+  { film:'Young Washington', exhibitor:'Cinemark',  placement:'Mercy',                        date:'2026-01-23', screens:null,       cost:7500 },
+  { film:'Young Washington', exhibitor:'Cinemark',  placement:'Wuthering Heights',            date:'2026-02-13', screens:'40%',      cost:14000 },
+  { film:'Young Washington', exhibitor:'Cinemark',  placement:'I Can Only Imagine 2',         date:'2026-02-20', screens:'40%',      cost:9000 },
+  { film:'Young Washington', exhibitor:'Cinemark',  placement:'Project Hail Mary',            date:'2026-03-20', screens:'40%',      cost:27000 },
+
+  { film:'Young Washington', exhibitor:'Megaplex',  placement:'Wuthering Heights',            date:'2026-02-13', screens:'100%',     cost:1000 },
+  { film:'Young Washington', exhibitor:'Megaplex',  placement:'I Can Only Imagine',           date:'2026-02-20', screens:'100%',     cost:1000 },
+  { film:'Young Washington', exhibitor:'Megaplex',  placement:'Project Hail Mary',            date:'2026-03-20', screens:'100%',     cost:1500 },
+  { film:'Young Washington', exhibitor:'Megaplex',  placement:'A Great Awakening',            date:'2026-04-03', screens:'100%',     cost:500 },
+  { film:'Young Washington', exhibitor:'Megaplex',  placement:'The Mandalorian and Grogu',    date:'2026-05-22', screens:'100%',     cost:2000 },
+  { film:'Young Washington', exhibitor:'Megaplex',  placement:'Disclosure Day',               date:'2026-06-12', screens:'100%',     cost:1000 },
+  { film:'Young Washington', exhibitor:'Megaplex',  placement:'Supergirl',                    date:'2026-06-26', screens:'100%',     cost:1500 },
+  { film:'Young Washington', exhibitor:'Megaplex',  placement:'The Running Man',              date:'2026-11-14', screens:'100%',     cost:1000 },
+  { film:'Young Washington', exhibitor:'Megaplex',  placement:'Now You See Me Now You Don\'t',date:'2026-11-14', screens:'100%',     cost:1000 },
+  { film:'Young Washington', exhibitor:'Megaplex',  placement:'Hamnet',                       date:'2026-11-26', screens:'100%',     cost:1000 },
+  { film:'Young Washington', exhibitor:'Megaplex',  placement:'Eternity',                     date:'2026-11-26', screens:'100%',     cost:1000 },
+
+  { film:'Young Washington', exhibitor:'Emagine',   placement:'Wuthering Heights',            date:'2026-02-13', screens:'25%',      cost:1500 },
+  { film:'Young Washington', exhibitor:'Emagine',   placement:'I Can Only Imagine',           date:'2026-02-20', screens:'50%',      cost:2000 },
+  { film:'Young Washington', exhibitor:'Emagine',   placement:'Project Hail Mary',            date:'2026-03-20', screens:'50%',      cost:2000 },
+  { film:'Young Washington', exhibitor:'Emagine',   placement:'A Great Awakening',            date:'2026-04-03', screens:'50%',      cost:2000 },
+  { film:'Young Washington', exhibitor:'Emagine',   placement:'Untitled Steven Spielberg',    date:'2026-06-12', screens:'100%',     cost:6000 },
+
+  { film:'Young Washington', exhibitor:'Marcus',    placement:'Greenland: 2',                 date:'2026-01-09', screens:'49%',      cost:5000 },
+  { film:'Young Washington', exhibitor:'Marcus',    placement:'Wuthering Heights',            date:'2026-02-12', screens:'100%',     cost:5000 },
+  { film:'Young Washington', exhibitor:'Marcus',    placement:'I Can Only Imagine',           date:'2026-02-20', screens:'100%',     cost:3500 },
+  { film:'Young Washington', exhibitor:'Marcus',    placement:'Project Hail Mary',            date:'2026-03-20', screens:'100%',     cost:7500 },
+  { film:'Young Washington', exhibitor:'Marcus',    placement:'A Great Awakening',            date:'2026-04-03', screens:'100%',     cost:2500 },
+  { film:'Young Washington', exhibitor:'Marcus',    placement:'The Mandalorian and Grogu',    date:'2026-05-22', screens:'50%',      cost:5000 },
+  { film:'Young Washington', exhibitor:'Marcus',    placement:'Untitled Steven Spielberg',    date:'2026-06-12', screens:'50%',      cost:5000 },
+  { film:'Young Washington', exhibitor:'Marcus',    placement:'Supergirl',                    date:'2026-06-26', screens:'50%',      cost:5000 },
+  { film:'Young Washington', exhibitor:'Marcus',    placement:'Avatar',                       date:'2026-12-29', screens:'50%',      cost:17500 },
+
+  { film:'Young Washington', exhibitor:'B&B',       placement:'Wuthering Heights',            date:'2026-02-13', screens:'100%',     cost:null },
+  { film:'Young Washington', exhibitor:'B&B',       placement:'I Can Only Imagine 2',         date:'2026-02-20', screens:'100%',     cost:null },
+  { film:'Young Washington', exhibitor:'B&B',       placement:'Project Hail Mary',            date:'2026-03-20', screens:'100%',     cost:null },
+  { film:'Young Washington', exhibitor:'B&B',       placement:'The Mandalorian and Grogu',    date:'2026-05-22', screens:'50-75%',   cost:null },
+  { film:'Young Washington', exhibitor:'B&B',       placement:'Disclosure Day',               date:'2026-06-12', screens:'100%',     cost:50000 },
+  { film:'Young Washington', exhibitor:'B&B',       placement:'Supergirl',                    date:'2026-06-26', screens:'100%',     cost:null },
+
+  { film:'Young Washington', exhibitor:'Regal',     placement:'I Can Only Imagine 2',         date:'2026-02-20', screens:'100%',     cost:null },
+  { film:'Young Washington', exhibitor:'Regal',     placement:'Project Hail Mary',            date:'2026-03-20', screens:'25%',      cost:null },
+  { film:'Young Washington', exhibitor:'Regal',     placement:'The Great Awakening',          date:'2026-04-03', screens:'50%',      cost:null },
+  { film:'Young Washington', exhibitor:'Regal',     placement:'The Mandalorian & Grogu',      date:'2026-05-22', screens:'10%',      cost:null },
+  { film:'Young Washington', exhibitor:'Regal',     placement:'Disclosure Day',               date:'2026-06-12', screens:'25%',      cost:null },
+  { film:'Young Washington', exhibitor:'Regal',     placement:'Nomen of Tomorrow',            date:'2026-06-26', screens:'10%',      cost:120000 },
+
+  // ‚îÄ‚îÄ‚îÄ ANIMAL FARM ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+  { film:'Animal Farm', exhibitor:'Emagine',              placement:'All You Need Is Kill',         date:'2026-01-16', screens:'25%',  cost:1500 },
+  { film:'Animal Farm', exhibitor:'Emagine',              placement:'GOAT',                         date:'2026-02-13', screens:'50%',  cost:2000 },
+  { film:'Animal Farm', exhibitor:'Emagine',              placement:'Hoppers',                      date:'2026-03-06', screens:'75%',  cost:3500 },
+  { film:'Animal Farm', exhibitor:'Emagine',              placement:'The Super Mario Galaxy Movie',  date:'2026-04-03', screens:'100%', cost:5000 },
+  { film:'Animal Farm', exhibitor:'Emagine',              placement:'4 Kids Walk Into a Bank',      date:'2026-04-17', screens:'100%', cost:5000 },
+
+  { film:'Animal Farm', exhibitor:'Marcus',               placement:'All You Need Is Kill',         date:'2026-01-16', screens:'50%',  cost:2500 },
+  { film:'Animal Farm', exhibitor:'Marcus',               placement:'GOAT',                         date:'2026-02-13', screens:'50%',  cost:5000 },
+  { film:'Animal Farm', exhibitor:'Marcus',               placement:'Hoppers',                      date:'2026-03-06', screens:'50%',  cost:10000 },
+  { film:'Animal Farm', exhibitor:'Marcus',               placement:'The Super Mario Galaxy Movie',  date:'2026-04-03', screens:'50%',  cost:25000 },
+  { film:'Animal Farm', exhibitor:'Marcus',               placement:'4 Kids Walk Into a Bank',      date:'2026-04-17', screens:'50%',  cost:5000 },
+
+  { film:'Animal Farm', exhibitor:'National Amusements',  placement:'GOAT',                         date:'2026-02-13', screens:'5 screens', cost:2125 },
+  { film:'Animal Farm', exhibitor:'National Amusements',  placement:'Hoppers',                      date:'2026-03-06', screens:'7 screens', cost:2975 },
+  { film:'Animal Farm', exhibitor:'National Amusements',  placement:'The Super Mario Galaxy Movie',  date:'2026-04-03', screens:'11 screens', cost:4675 },
+
+  { film:'Animal Farm', exhibitor:'Regal',                placement:'All You Need Is Kill',         date:'2026-01-16', screens:'15%',  cost:16000 },
+  { film:'Animal Farm', exhibitor:'Regal',                placement:'GOAT',                         date:'2026-02-13', screens:'15%',  cost:16000 },
+  { film:'Animal Farm', exhibitor:'Regal',                placement:'Hoppers',                      date:'2026-03-06', screens:'15%',  cost:16000 },
+  { film:'Animal Farm', exhibitor:'Regal',                placement:'The Super Mario Galaxy Movie',  date:'2026-04-03', screens:'15%',  cost:16000 },
+  { film:'Animal Farm', exhibitor:'Regal',                placement:'4 Kids Walk Into a Bank',      date:'2026-04-17', screens:'15%',  cost:16000 },
+
+  { film:'Animal Farm', exhibitor:'Megaplex',             placement:'GOAT',                         date:'2026-02-13', screens:'100%', cost:1500 },
+  { film:'Animal Farm', exhibitor:'Megaplex',             placement:'Hoppers',                      date:'2026-03-06', screens:'100%', cost:1000 },
+  { film:'Animal Farm', exhibitor:'Megaplex',             placement:'The Super Mario Galaxy Movie',  date:'2026-04-03', screens:'100%', cost:2000 },
+  { film:'Animal Farm', exhibitor:'Megaplex',             placement:'4 Kids Walk Into a Bank',      date:'2026-04-17', screens:'100%', cost:1000 },
+
+  { film:'Animal Farm', exhibitor:'B&B',                  placement:'GOAT',                         date:'2026-02-13', screens:'100%', cost:null },
+  { film:'Animal Farm', exhibitor:'B&B',                  placement:'Hoppers',                      date:'2026-03-06', screens:'50%',  cost:null },
+  { film:'Animal Farm', exhibitor:'B&B',                  placement:'The Super Mario Galaxy Movie',  date:'2026-04-03', screens:'50%',  cost:null },
+  { film:'Animal Farm', exhibitor:'B&B',                  placement:'4 Kids Walk Into a Bank',      date:'2026-04-17', screens:'100%', cost:24000 },
+
+  { film:'Animal Farm', exhibitor:'AMC',                  placement:'GOAT',                         date:'2026-02-13', screens:'25%',  cost:42500 },
+  { film:'Animal Farm', exhibitor:'AMC',                  placement:'Hoppers',                      date:'2026-03-06', screens:'50%',  cost:75000 },
+
+  { film:'Animal Farm', exhibitor:'Cinemark',             placement:'The Super Mario Galaxy Movie',  date:'2026-04-03', screens:'20%',  cost:50000 },
+
+  // ‚îÄ‚îÄ‚îÄ SOLO MIO ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+  { film:'Solo Mio', exhibitor:'AMC',       placement:'The Choral',         date:'2025-12-25', screens:'50%',  cost:2900 },
+
+  { film:'Solo Mio', exhibitor:'B&B',       placement:'Song Sung Blue',     date:'2025-12-25', screens:'100%', cost:3500 },
+  { film:'Solo Mio', exhibitor:'B&B',       placement:'The Choral',         date:'2025-12-25', screens:'100%', cost:1000 },
+  { film:'Solo Mio', exhibitor:'B&B',       placement:'Marty Supreme',      date:'2025-12-25', screens:'100%', cost:3500 },
+  { film:'Solo Mio', exhibitor:'B&B',       placement:'Is This Thing On?',  date:'2026-01-09', screens:'100%', cost:1000 },
+  { film:'Solo Mio', exhibitor:'B&B',       placement:'Mercy',              date:'2026-01-23', screens:'100%', cost:3000 },
+
+  { film:'Solo Mio', exhibitor:'Cinemark',  placement:'Spongebob',          date:'2025-12-19', screens:'20%',  cost:9000 },
+  { film:'Solo Mio', exhibitor:'Cinemark',  placement:'Song Sung Blue',     date:'2025-12-25', screens:'15%',  cost:3000 },
+  { film:'Solo Mio', exhibitor:'Cinemark',  placement:'Anaconda',           date:'2025-12-25', screens:'40%',  cost:19000 },
+  { film:'Solo Mio', exhibitor:'Cinemark',  placement:'The Choral',         date:'2025-12-25', screens:'45%',  cost:2000 },
+  { film:'Solo Mio', exhibitor:'Cinemark',  placement:'Is This Thing On?',  date:'2026-01-09', screens:'75%',  cost:7000 },
+
+  { film:'Solo Mio', exhibitor:'Emagine',   placement:'Song Sung Blue',     date:'2025-12-25', screens:'100%', cost:5000 },
+  { film:'Solo Mio', exhibitor:'Emagine',   placement:'Marty Supreme',      date:'2025-12-25', screens:'100%', cost:5000 },
+  { film:'Solo Mio', exhibitor:'Emagine',   placement:'Is This Thing On?',  date:'2026-01-09', screens:'100%', cost:5000 },
+  { film:'Solo Mio', exhibitor:'Emagine',   placement:'Mercy',              date:'2026-01-23', screens:'100%', cost:5000 },
+
+  { film:'Solo Mio', exhibitor:'Marcus',    placement:'Anaconda',           date:'2025-12-25', screens:'50%',  cost:10000 },
+  { film:'Solo Mio', exhibitor:'Marcus',    placement:'Marty Supreme',      date:'2025-12-25', screens:'50%',  cost:5000 },
+  { film:'Solo Mio', exhibitor:'Marcus',    placement:'Song Sung Blue',     date:'2025-12-25', screens:'50%',  cost:5000 },
+  { film:'Solo Mio', exhibitor:'Marcus',    placement:'Is This Thing On?',  date:'2026-01-09', screens:'50%',  cost:5000 },
+  { film:'Solo Mio', exhibitor:'Marcus',    placement:'Mercy',              date:'2026-01-23', screens:'50%',  cost:5000 },
+
+  { film:'Solo Mio', exhibitor:'Megaplex',  placement:'Ella McCay',         date:'2025-12-25', screens:'100%', cost:1000 },
+  { film:'Solo Mio', exhibitor:'Megaplex',  placement:'Marty Supreme',      date:'2025-12-25', screens:'100%', cost:1000 },
+  { film:'Solo Mio', exhibitor:'Megaplex',  placement:'Song Sung Blue',     date:'2025-12-25', screens:'100%', cost:1000 },
+  { film:'Solo Mio', exhibitor:'Megaplex',  placement:'Anaconda',           date:'2025-12-25', screens:'100%', cost:1000 },
+  { film:'Solo Mio', exhibitor:'Megaplex',  placement:'Is This Thing On?',  date:'2026-01-09', screens:'100%', cost:500 },
+  { film:'Solo Mio', exhibitor:'Megaplex',  placement:'Mercy',              date:'2026-01-23', screens:'100%', cost:1000 },
+
+  { film:'Solo Mio', exhibitor:'Natl Amuse', placement:'Song Sung Blue',    date:'2025-12-25', screens:null,   cost:null },
+  { film:'Solo Mio', exhibitor:'Natl Amuse', placement:'Marty Supreme',     date:'2025-12-25', screens:null,   cost:null },
+  { film:'Solo Mio', exhibitor:'Natl Amuse', placement:'Is This Thing On?', date:'2026-01-09', screens:null,   cost:null },
+  { film:'Solo Mio', exhibitor:'Natl Amuse', placement:'Mercy',             date:'2026-01-23', screens:null,   cost:null },
+
+  // ‚îÄ‚îÄ‚îÄ I WAS A STRANGER (partial ‚Äì confirmed placements) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'Blue Moon',         date:null, screens:'100%', cost:2500 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'Regretting You',    date:null, screens:'50%',  cost:5000 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'Bugonia',           date:null, screens:'50%',  cost:2500 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'Christy',           date:null, screens:'50%',  cost:2500 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'Die My Love',       date:null, screens:'50%',  cost:2500 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'Nuremberg',         date:null, screens:'50%',  cost:2500 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'King Ivory',        date:null, screens:'100%', cost:2500 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'Rental Family',     date:null, screens:'50%',  cost:3500 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'Sisu: Road to Revenge',date:null, screens:'50%', cost:5000 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'Ella McCay',        date:null, screens:'50%',  cost:3500 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'Hamnet',            date:null, screens:'50%',  cost:3500 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'Marty Supreme',     date:null, screens:'50%',  cost:5000 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'Song Sung Blue',    date:null, screens:'50%',  cost:5000 },
+  { film:'I Was a Stranger', exhibitor:'Marcus',   placement:'After the Hunt',    date:null, screens:null,   cost:null },
+
+  { film:'I Was a Stranger', exhibitor:'Cinemark', placement:'Die My Love',       date:'2025-11-14', screens:'20%',  cost:1400 },
+  { film:'I Was a Stranger', exhibitor:'Cinemark', placement:'Sisu: Road to Revenge',date:'2025-11-14', screens:'65%', cost:4500 },
+  { film:'I Was a Stranger', exhibitor:'Cinemark', placement:'Nuremberg',         date:'2025-11-14', screens:'45%',  cost:2500 },
+  { film:'I Was a Stranger', exhibitor:'Cinemark', placement:'Christy',           date:'2025-11-14', screens:'45%',  cost:2500 },
+  { film:'I Was a Stranger', exhibitor:'Cinemark', placement:'Rebuilding',        date:'2025-11-07', screens:'20%',  cost:1000 },
+  { film:'I Was a Stranger', exhibitor:'Cinemark', placement:"Sarah's Oil",       date:'2025-11-14', screens:'45%',  cost:5200 },
+
+  { film:'I Was a Stranger', exhibitor:'AMC',      placement:'Blue Moon',         date:'2025-11-14', screens:'50%',  cost:1000 },
+  { film:'I Was a Stranger', exhibitor:'AMC',      placement:"Sarah's Oil",       date:'2025-11-14', screens:'50%',  cost:15500 },
+  { film:'I Was a Stranger', exhibitor:'AMC',      placement:'King Ivory',        date:'2025-11-14', screens:'50%',  cost:1000 },
+  { film:'I Was a Stranger', exhibitor:'AMC',      placement:'Nuremberg',         date:'2025-11-14', screens:'50%',  cost:9600 },
+  { film:'I Was a Stranger', exhibitor:'AMC',      placement:'Die My Love',       date:'2025-11-14', screens:'30%',  cost:5700 },
+  { film:'I Was a Stranger', exhibitor:'AMC',      placement:'Christy',           date:'2025-11-14', screens:'50%',  cost:7200 },
+
+  { film:'I Was a Stranger', exhibitor:'Regal',    placement:'I Can Only Imagine 2',date:'2026-02-20', screens:'100%', cost:null },
+  { film:'I Was a Stranger', exhibitor:'Regal',    placement:'Springsteen',       date:'2025-11-14', screens:'15%',  cost:null },
+  { film:'I Was a Stranger', exhibitor:'Regal',    placement:'Nuremberg',         date:'2025-11-14', screens:'15%',  cost:null },
+  { film:'I Was a Stranger', exhibitor:'Regal',    placement:'Die My Love',       date:'2025-11-14', screens:'25%',  cost:null },
+  { film:'I Was a Stranger', exhibitor:'Regal',    placement:'Christy',           date:'2025-11-14', screens:'15%',  cost:null },
+  { film:'I Was a Stranger', exhibitor:'Regal',    placement:'Now You See Me',    date:'2025-11-14', screens:'15%',  cost:null },
+  { film:'I Was a Stranger', exhibitor:'Regal',    placement:'Sisu: Road to Revenge',date:'2025-11-14', screens:'15%', cost:null },
+  { film:'I Was a Stranger', exhibitor:'Regal',    placement:'Rental Family',     date:'2025-11-14', screens:'15%',  cost:null },
+  { film:'I Was a Stranger', exhibitor:'Regal',    placement:'Eternity',          date:'2025-11-14', screens:'15%',  cost:null },
+  { film:'I Was a Stranger', exhibitor:'Regal',    placement:'Marty Supreme',     date:'2025-11-14', screens:'15%',  cost:null },
+  { film:'I Was a Stranger', exhibitor:'Regal',    placement:'Song Sung Blue',    date:'2025-11-14', screens:'15%',  cost:null },
+  { film:'I Was a Stranger', exhibitor:"Sarah's Oil",  placement:"Sarah's Oil",   date:'2025-11-14', screens:'15%',  cost:null },
+
+  // ‚îÄ‚îÄ‚îÄ DAVID (partial ‚Äì confirmed/booked placements) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+  { film:'David', exhibitor:'Cinemark',  placement:'Pets on a Train',              date:null, screens:'45%',  cost:2000 },
+  { film:'David', exhibitor:'Cinemark',  placement:'Stitch Head',                  date:null, screens:'45%',  cost:2000 },
+  { film:'David', exhibitor:'Cinemark',  placement:'Grand Prix of Europe',         date:null, screens:'45%',  cost:2000 },
+  { film:'David', exhibitor:'Cinemark',  placement:'Wicked: For Good',             date:null, screens:'50%',  cost:92000 },
+  { film:'David', exhibitor:'Cinemark',  placement:'Zootopia 2',                   date:'2025-11-26', screens:'35%', cost:80000 },
+
+  { film:'David', exhibitor:'Harkins',   placement:'Chicken Run',                  date:null, screens:'100%', cost:0 },
+  { film:'David', exhibitor:'Harkins',   placement:'Grand Prix of Europe',         date:null, screens:'100%', cost:0 },
+
+  { film:'David', exhibitor:'Marcus',    placement:"Sarah's Oil",                  date:null, screens:'50%',  cost:3500 },
+  { film:'David', exhibitor:'Marcus',    placement:'Zootopia 2',                   date:null, screens:'50%',  cost:17500 },
+  { film:'David', exhibitor:'Marcus',    placement:'Chicken Run',                  date:null, screens:'100%', cost:2500 },
+  { film:'David', exhibitor:'Marcus',    placement:'Pets on a Train',              date:null, screens:'50%',  cost:null },
+  { film:'David', exhibitor:'Marcus',    placement:'The Nightmare Before Christmas',date:null, screens:'100%', cost:2500 },
+];
+
+// ‚îÄ‚îÄ State ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+let currentFilm = 'Young Washington';
+let currentSort = 'date';
+let currentView = 'table';
+let filterExhibitor = '';
+let searchText = '';
+
+// ‚îÄ‚îÄ Helpers ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+function exhibitorKey(ex) {
+  return (ex || '').toLowerCase().replace(/[^a-z]/g, '');
+}
+
+function exhibitorBadge(ex) {
+  const k = exhibitorKey(ex);
+  return `<span class="badge ex-${k}">${ex}</span>`;
+}
+
+function fmtCost(c) {
+  if (c == null) return '<span class="no-cost">‚Äî</span>';
+  if (c === 0)   return '<span style="color:#9ca3af">$0</span>';
+  return '$' + c.toLocaleString();
+}
+
+function fmtDate(d) {
+  if (!d) return '<span class="no-cost">TBD</span>';
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+function sortKey(row) {
+  if (currentSort === 'date') return row.date || '9999-99-99';
+  if (currentSort === 'cost') return -(row.cost || 0);
+  if (currentSort === 'exhibitor') return (row.exhibitor || '').toLowerCase();
+  return 0;
+}
+
+// ‚îÄ‚îÄ Filters ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+function filteredData() {
+  return RAW_DATA.filter(r => {
+    if (r.film !== currentFilm) return false;
+    if (filterExhibitor && r.exhibitor !== filterExhibitor) return false;
+    if (searchText) {
+      const q = searchText.toLowerCase();
+      if (!r.placement.toLowerCase().includes(q) &&
+          !r.exhibitor.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  }).sort((a, b) => {
+    const ka = sortKey(a), kb = sortKey(b);
+    return ka < kb ? -1 : ka > kb ? 1 : 0;
+  });
+}
+
+// ‚îÄ‚îÄ Summary ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+function renderSummary(rows) {
+  const total = rows.reduce((s, r) => s + (r.cost || 0), 0);
+  const withCost = rows.filter(r => r.cost != null).length;
+  const exhibitors = [...new Set(rows.map(r => r.exhibitor))].length;
+  const placements = [...new Set(rows.map(r => r.placement))].length;
+  const color = FILM_COLORS[currentFilm] || '#6366f1';
+  document.getElementById('summaryBar').innerHTML = `
+    <div class="stat-card">
+      <div class="label">Placements</div>
+      <div class="value" style="color:${color}">${rows.length}</div>
+      <div class="sub">${placements} unique films</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Total Cost</div>
+      <div class="value" style="color:#059669">$${total.toLocaleString()}</div>
+      <div class="sub">${withCost} of ${rows.length} with costs</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Exhibitors</div>
+      <div class="value" style="color:${color}">${exhibitors}</div>
+      <div class="sub">theater chains</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Avg Cost</div>
+      <div class="value" style="color:#6b7280">
+        ${withCost > 0 ? '$' + Math.round(total / withCost).toLocaleString() : '‚Äî'}
+      </div>
+      <div class="sub">per placement</div>
+    </div>
+  `;
+}
+
+// ‚îÄ‚îÄ Table ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+function renderTable(rows) {
+  if (!rows.length) return renderEmpty();
+  const grouped = currentSort === 'exhibitor';
+  let html = `<div class="table-wrapper"><table>
+    <thead><tr>
+      <th onclick="setSort('date')">Release Date <span class="sort-indicator">${currentSort==='date'?'‚Üë':''}</span></th>
+      <th>Trailer Placement Film</th>
+      <th onclick="setSort('exhibitor')">Exhibitor <span class="sort-indicator">${currentSort==='exhibitor'?'‚Üë':''}</span></th>
+      <th>% Screens</th>
+      <th onclick="setSort('cost')" style="text-align:right">Cost <span class="sort-indicator">${currentSort==='cost'?'‚Üì':''}</span></th>
+    </tr></thead><tbody>`;
+
+  let lastGroup = null;
+  rows.forEach(r => {
+    if (grouped) {
+      const g = r.exhibitor;
+      if (g !== lastGroup) {
+        const k = exhibitorKey(g);
+        html += `<tr><td colspan="5" class="group-header" style="border-left:3px solid var(--ex-color)">
+          <span class="badge ex-${k}">${g}</span>
+        </td></tr>`;
+        lastGroup = g;
+      }
+    }
+    const k = exhibitorKey(r.exhibitor);
+    html += `<tr>
+      <td class="date">${fmtDate(r.date)}</td>
+      <td class="placement">${r.placement}</td>
+      <td>${grouped ? '' : exhibitorBadge(r.exhibitor)}</td>
+      <td class="screens">${r.screens || '<span class="no-cost">‚Äî</span>'}</td>
+      <td class="cost">${fmtCost(r.cost)}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  document.getElementById('content').innerHTML = html;
+}
+
+// ‚îÄ‚îÄ Cards ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+function renderCards(rows) {
+  if (!rows.length) return renderEmpty();
+  const color = FILM_COLORS[currentFilm] || '#6366f1';
+  let html = '<div class="cards-grid">';
+  rows.forEach(r => {
+    const k = exhibitorKey(r.exhibitor);
+    html += `<div class="placement-card border-${k}">
+      <div class="card-header">
+        <div>
+          <div class="card-title">${r.placement}</div>
+          <div class="card-date">${fmtDate(r.date)}</div>
+        </div>
+      </div>
+      <div class="card-meta">
+        ${exhibitorBadge(r.exhibitor)}
+        ${r.screens ? `<span class="card-screens">${r.screens}</span>` : ''}
+        <span class="card-cost">${fmtCost(r.cost)}</span>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('content').innerHTML = html;
+}
+
+function renderEmpty() {
+  document.getElementById('content').innerHTML = `
+    <div class="empty-state">
+      <p>No placements match your filters.</p>
+    </div>`;
+}
+
+// ‚îÄ‚îÄ Film tabs ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+function renderFilmTabs() {
+  const container = document.getElementById('filmTabs');
+  container.innerHTML = FILMS.map(f => {
+    const count = RAW_DATA.filter(r => r.film === f).length;
+    return `<button class="film-tab ${f===currentFilm?'active':''}" onclick="setFilm('${f}')">
+      ${f} <span style="opacity:0.6;font-size:11px">(${count})</span>
+    </button>`;
+  }).join('');
+}
+
+// ‚îÄ‚îÄ Exhibitor dropdown ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+function updateExhibitorDropdown() {
+  const sel = document.getElementById('exhibitorFilter');
+  const exhibitors = [...new Set(RAW_DATA.filter(r=>r.film===currentFilm).map(r=>r.exhibitor))].sort();
+  sel.innerHTML = '<option value="">All Exhibitors</option>' +
+    exhibitors.map(e => `<option value="${e}" ${e===filterExhibitor?'selected':''}>${e}</option>`).join('');
+}
+
+// ‚îÄ‚îÄ Render ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+function render() {
+  renderFilmTabs();
+  updateExhibitorDropdown();
+  const rows = filteredData();
+  renderSummary(rows);
+  if (currentView === 'table') renderTable(rows);
+  else renderCards(rows);
+}
+
+// ‚îÄ‚îÄ Setters ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+function setFilm(f) {
+  currentFilm = f;
+  filterExhibitor = '';
+  document.getElementById('exhibitorFilter').value = '';
+  render();
+}
+
+function setSort(s) {
+  currentSort = s;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sort' + s.charAt(0).toUpperCase() + s.slice(1)).classList.add('active');
+  render();
+}
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('btnTable').classList.toggle('active', v==='table');
+  document.getElementById('btnCards').classList.toggle('active', v==='cards');
+  const rows = filteredData();
+  renderSummary(rows);
+  if (v === 'table') renderTable(rows);
+  else renderCards(rows);
+}
+
+// ‚îÄ‚îÄ Event listeners ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+document.getElementById('exhibitorFilter').addEventListener('change', e => {
+  filterExhibitor = e.target.value;
+  render();
+});
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchText = e.target.value.trim();
+  const rows = filteredData();
+  renderSummary(rows);
+  if (currentView === 'table') renderTable(rows);
+  else renderCards(rows);
+});
+
+// ‚îÄ‚îÄ Init ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+// render() is called after login ‚Äî not here
+
+// ‚îÄ‚îÄ Google Auth (login gate + Sheets sync) ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+const CLIENT_ID = '462964842360-iej1u3kefi3dm0gfeh6kp268sedp9qi3.apps.googleusercontent.com';
+const SPREADSHEET_ID = '1gxAWqNANAK0D1mWJhhmqaKXkexnz24NlfoSuCj8jrWo';
+const ALLOWED_DOMAIN = 'angel.co';
+
+let tokenClient = null;
+let accessToken = null;
+
+function initGoogleAuth() {
+  // ‚îÄ‚îÄ Login gate ‚îÄ‚îÄ
+  google.accounts.id.initialize({
+    client_id: CLIENT_ID,
+    callback: handleSignIn,
+    auto_select: true,
+  });
+
+  // Check if already authenticated this session
+  const savedEmail = sessionStorage.getItem('angel_email');
+  if (savedEmail) {
+    showApp();
+  } else {
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      google.accounts.id.prompt((notification) => {
+        // If one-tap isn't available, fall back to popup
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          triggerOAuthLogin();
+        }
+      });
+    });
+  }
+
+  // ‚îÄ‚îÄ Sheets sync token client ‚îÄ‚îÄ
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+    callback: async (resp) => {
+      if (resp.error) { setSyncStatus('Auth error: ' + resp.error); setSyncBtnState(false); return; }
+      accessToken = resp.access_token;
+      await syncData();
+    },
+  });
+}
+
+// Fallback: use OAuth token to get user info if one-tap isn't available
+function triggerOAuthLogin() {
+  const loginTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/userinfo.email',
+    callback: async (resp) => {
+      if (resp.error) { showLoginError('Sign-in failed. Please try again.'); return; }
+      const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${resp.access_token}` }
+      });
+      const info = await r.json();
+      handleEmailCheck(info.email);
+    },
+  });
+  loginTokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function handleSignIn(response) {
+  // Decode JWT (base64url ‚Üí base64 ‚Üí JSON)
+  const base64 = response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+  const payload = JSON.parse(atob(base64));
+  handleEmailCheck(payload.email);
+}
+
+function handleEmailCheck(email) {
+  if (email && email.endsWith('@' + ALLOWED_DOMAIN)) {
+    sessionStorage.setItem('angel_email', email);
+    showApp();
+  } else {
+    showLoginError(`${email || 'That account'} is not an @${ALLOWED_DOMAIN} address.`);
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function showApp() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
+  render();
+}
+
+function handleSyncClick() {
+  if (!tokenClient) { setSyncStatus('Loading auth...'); return; }
+  setSyncBtnState(true);
+  tokenClient.requestAccessToken({ prompt: '' });
+}
+
+async function syncData() {
+  setSyncBtnState(true);
+  try {
+    const data = await fetchAllSheetData();
+    RAW_DATA.splice(0, RAW_DATA.length, ...data);
+    render();
+    const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    setSyncStatus('Synced at ' + now);
+  } catch (e) {
+    setSyncStatus('Sync failed: ' + e.message);
+  } finally {
+    setSyncBtnState(false);
+  }
+}
+
+function setSyncBtnState(loading) {
+  const btn = document.getElementById('syncBtn');
+  btn.disabled = loading;
+  btn.classList.toggle('syncing', loading);
+  btn.innerHTML = loading
+    ? '<span class="sync-icon" style="font-size:15px">‚Üª</span> Syncing...'
+    : '<span class="sync-icon" style="font-size:15px">‚Üª</span> Sync from Sheets';
+}
+
+function setSyncStatus(msg) {
+  document.getElementById('lastSynced').textContent = msg;
+}
+
+async function fetchAllSheetData() {
+  const tabs = [
+    { range: 'YW!A1:H500',             film: 'Young Washington' },
+    { range: "'Animal Farm'!A1:H500",   film: 'Animal Farm' },
+    { range: "'Solo Mio'!A1:H500",      film: 'Solo Mio' },
+    { range: 'IWAS!A1:H500',            film: 'I Was a Stranger' },
+    { range: 'DAVID!A1:H500',           film: 'David' },
+  ];
+
+  const results = [];
+
+  for (const tab of tabs) {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(tab.range)}?valueRenderOption=FORMATTED_VALUE`;
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (!resp.ok) throw new Error(`${tab.film}: HTTP ${resp.status}`);
+    const json = await resp.json();
+    if (!json.values || json.values.length < 2) continue;
+
+    const headers = json.values[0].map(h => h.toString().toLowerCase().trim());
+    const col = (...keywords) => headers.findIndex(h => keywords.some(k => h.includes(k)));
+
+    const exIdx     = col('exhibitor');
+    const placeIdx  = col('trailer placement', 'placement title');
+    const dateIdx   = col('release date', 'date');
+    const screensIdx = col('% screen', 'screens');
+    const costIdx   = col('$ cost', 'cost');
+
+    if (exIdx === -1 || placeIdx === -1) continue;
+
+    json.values.slice(1).forEach(row => {
+      const exhibitor  = (row[exIdx]  || '').trim();
+      const placement  = (row[placeIdx] || '').trim();
+      if (!exhibitor || !placement) return;
+
+      results.push({
+        film:     tab.film,
+        exhibitor,
+        placement,
+        date:     parseSheetDate(dateIdx >= 0 ? (row[dateIdx] || '') : ''),
+        screens:  screensIdx >= 0 ? ((row[screensIdx] || '').trim() || null) : null,
+        cost:     costIdx >= 0 ? parseSheetCost(row[costIdx] || '') : null,
+      });
+    });
+  }
+
+  return results;
+}
+
+function parseSheetDate(raw) {
+  if (!raw) return null;
+  const m = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+  const d = new Date(raw);
+  return isNaN(d) ? null : d.toISOString().split('T')[0];
+}
+
+function parseSheetCost(raw) {
+  if (!raw || raw === '-' || raw === '‚Äî') return null;
+  const n = parseFloat(raw.replace(/[$,\s]/g, ''));
+  return isNaN(n) ? null : n;
+}
+</script>
+<script src="https://accounts.google.com/gsi/client" async onload="initGoogleAuth()"></script>
+</body>
+</html>
