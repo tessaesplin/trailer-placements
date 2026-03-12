@@ -9,7 +9,7 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #f0f2f5;
-      color: #1a1a2e
+      color: #1a1a2e;
       min-height: 100vh;
     }
     header {
@@ -679,7 +679,7 @@ function renderTable(rows) {
       <td class="date">${fmtDate(r.date)}</td>
       <td class="placement">${r.placement}</td>
       <td>${grouped ? '' : exhibitorBadge(r.exhibitor)}</td>
-      <td class="screens">${r.screens || '<span class="no-cost">‚Äî</span>'}</td>
+      <td class="screens">${r.screens || ''}</td>
       <td class="cost">${fmtCost(r.cost)}</td>
     </tr>`;
   });
