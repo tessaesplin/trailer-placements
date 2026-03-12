@@ -328,7 +328,7 @@
   <div style="display:flex;align-items:center;gap:12px">
     <span class="last-synced" id="lastSynced">Cached data</span>
     <button class="sync-btn" id="syncBtn" onclick="handleSyncClick()">
-      <span class="sync-icon" style="font-size:15px">‚Üª</span> Sync from Sheets
+      <span class="sync-icon" style="font-size:15px">&#8635;</span> Sync from Sheets
     </button>
   </div>
 </header>
@@ -904,8 +904,8 @@ function setSyncBtnState(loading) {
   btn.disabled = loading;
   btn.classList.toggle('syncing', loading);
   btn.innerHTML = loading
-    ? '<span class="sync-icon" style="font-size:15px">‚Üª</span> Syncing...'
-    : '<span class="sync-icon" style="font-size:15px">‚Üª</span> Sync from Sheets';
+    ? '<span class="sync-icon" style="font-size:15px">&#8635;</span> Syncing...'
+    : '<span class="sync-icon" style="font-size:15px">&#8635;</span> Sync from Sheets';
 }
 
 function setSyncStatus(msg) {
